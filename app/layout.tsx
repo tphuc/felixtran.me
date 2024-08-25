@@ -11,17 +11,32 @@ import { baseUrl } from './sitemap'
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: 'Felix Tr',
-    template: '%s | Felix Tr',
+    default: 'Felix Tran - Fullstack Developer',
+    template: '%s | Felix Tran - Fullstack Developer',
   },
-  description: 'This is my portfolio.',
+  description: 'Welcome to Felix Tran\'s Portfolio. Discover my projects, skills, and experiences as a Fullstack Developer.',
   openGraph: {
-    title: 'FelixTr',
-    description: 'This is my portfolio.',
+    title: 'Felix Tran - Fullstack Developer',
+    description: 'Explore Felix Tran\'s Portfolio, showcasing a range of web and mobile development projects, design sensibilities, and technical expertise.',
     url: baseUrl,
     siteName: `Felix Tran's Portfolio`,
     locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: `${baseUrl}/opengraph.webp`,
+        width: 1200,
+        height: 630,
+        alt: 'Felix Tran Portfolio Preview',
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title:  'Felix Tran - Fullstack Developer',
+    description: 'Check out my portfolio for an in-depth look at my work as a Fullstack Developer.',
+    images: [`${baseUrl}/opengraph.webp`],
+    creator: "@tphuc",
   },
   robots: {
     index: true,

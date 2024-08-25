@@ -25,7 +25,7 @@ export function generateMetadata({ params }) {
   } = post.metadata
   let ogImage = image
     ? image
-    :  `${baseUrl}/banner.jpg`
+    :  `${baseUrl}/opengraph.webp`
     
     // `${baseUrl}/og?title=${encodeURIComponent(title)}`
 
