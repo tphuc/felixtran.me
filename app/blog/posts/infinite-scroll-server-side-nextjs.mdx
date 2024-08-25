@@ -1,0 +1,178 @@
+---
+title:  Infinite Scroll Component in React
+description:  Learn how to implement infinite scroll component in React. This guide covers step-by-step instructions to create a seamless, user-friendly experience where content loads dynamically as users scroll, improving both performance and user engagement. Perfect for developers looking to enhance their web applications with efficient data fetching techniques and smooth page transitions.
+publishedAt: '2023-08-25'
+tags: [‘Next.js’, ‘infinite scroll’, ‘server-side rendering’, ‘React’, ‘web development’, ‘data fetching’, ‘performance optimization’, ‘hooks’, ‘JavaScript’, ‘UI/UX’, ‘dynamic loading’, ‘frontend development’, ‘SEO’, ‘SSR’, ‘pagination’]
+level: Intermediate
+thumbnail: images/data-fetching-with-swr.png
+---
+
+Infinite scrolling is a popular technique for dynamically loading content as users scroll down a page. It’s a great way to keep users engaged without overwhelming them with too much content at once.
+
+In this post, I’ll walk you through creating an infinite scroll component. Whether you’re new to this concept or just need a refresher, we’ll break it down step by step.
+
+This approach was instrumental in developing my product, TubeMemo, where users can efficiently scroll through and manage YouTube video notes without ever feeling overwhelmed by too much information at once.
+
+<div className="bg-neutral-100 text-muted-foreground cursor-default p-4 -ml-4 rounded-xl">
+    <div className="flex gap-2">
+      <img className="w-10 h-10 rounded-md border border-neutral-200" alt='' src='https://www.tubememo.com/_next/image?url=%2Fico.jpg&w=640&q=75' />
+      <div>
+        <div style={{padding:0, height:20, margin:0}}  className="flex cursor-pointer font-semibold items-center gap-1 text-gray-700">
+          TubeMemo - Effortlessly take notes from YouTube videos
+        </div>
+        <a target="_blank" style={{padding:0, height:20}} rel="noopener noreferrer" href='https://tubememo.com' className="flex cursor-pointer items-center gap-1 text-gray-600">
+            <span>tubememo.com</span>
+        </a>
+      </div>
+    </div>      
+</div>
+
+## Overview: What We’re Building
+
+
+We’re going to create a component that loads a list of blog posts from a server. 
+We’ll use the `useSWRInfinite` hook for data fetching and `useInView` to detect when the user reaches the bottom of the list.
+
+## Setting Up the Component StructureOur component will handle:
+
+- State Management: We’ll track whether we’re in selection mode, which items are selected, and whether the infinite scroll has finished.
+
+- Fetching Data: We’ll use `useSWRInfinite` to handle loading paginated data from the server.
+
+- Rendering Items: The posts will be displayed in a grid, and new posts will load as the user scrolls.
+
+- Scroll Detection: `useInView` will help us detect when the user has scrolled to the bottom of the list.
+
+
+## Key Parts of the Code Explained
+
+Let's break down the key parts of the code so you can understand how it all works together.
+
+- **State and Hook Initialization:**
+  ```javascript
+  const { ref, inView } = useInView();
+  const { userId } = useAuth();
+  const [finished, setFinished] = useState(false);
+  ```
+  We use `useInView` to know when a specific element (a placeholder div at the bottom of the list) is visible on the screen. The `finished` state tracks whether we've loaded all available data.
+
+- **Data Fetching with `useSWRInfinite`:**
+    ```javascript
+    
+    const getKey = (pageIndex: number, previousPageData: any) => {
+        if (previousPageData && !previousPageData.length) {
+            setFinished(true);
+            return null;
+        }
+        const offset = pageIndex === 0 ? null : previousPageData?.[previousPageData.length - 1]?.id;
+        return `/api/posts?offset=${offset}&limit=10`;
+    };
+    ```
+    The `getKey` function generates parameters for each API request. If there’s no more data (i.e., `previousPageData` is empty), it stops further requests by returning `null`.
+
+    The `fetcher` function is responsible for making the API call:
+    ```typescript
+    interface Post {
+        id: string;
+        content: string;
+    }
+
+    const fetcher = async (url: string): Promise<Post[]> => {
+        const response = await fetch(url);
+        return response.json();
+    };
+
+    ```
+
+
+- **Handling Scroll Events:**
+  ```javascript
+  useEffect(() => {
+    if (inView && !isLoading && !isValidating && !finished) {
+      setSize((prevSize) => prevSize + 1);
+    }
+  }, [inView, isLoading, isValidating, setSize]);
+  ```
+  This `useEffect` hook checks if the bottom of the list is in view (`inView`). If it is, and we’re not currently loading or validating data, and we haven’t finished loading all posts, we increment the page size to load more data.
+
+## **Rendering the Content**
+
+The posts are rendered in a grid, and as new data is fetched, it’s appended to the list. We also have a loading state indicator that shows a placeholder while new data is being fetched:
+
+```javascript
+return (
+    <div className="relative pt-4 w-full h-full space-y-2">
+        <h2 className="text-xl font-semibold">Your posts</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+            {items?.map((item: any) => (
+                <BlogPost key={item?.id} data={item} />
+            ))}
+            {isLoading && isValidating ? (
+               <div ref={ref}> Loading... </div>
+            ) : null}
+        </div>
+    </div>
+);
+```
+
+## **Putting it all together**
+```jsx
+import React, { useState, useEffect } from 'react';
+import useSWRInfinite from 'swr/infinite';
+import { useInView } from '@react-intersection-observer';
+
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Network error');
+  }
+  return response.json();
+};
+
+const InfinityScrollList: React.FC = () => {
+  const { ref, inView } = useInView();
+  const [finished, setFinished] = useState(false);
+
+  const getKey = (pageIndex: number, previousPageData: any) => {
+    if (previousPageData && !previousPageData.length) {
+      setFinished(true);
+      return null;
+    }
+    const offset = pageIndex === 0 ? null : previousPageData?.[previousPageData.length - 1]?.id;
+    return `/api/posts?offset=${offset}&limit=8`;
+  };
+
+  const { data, error, size, setSize, isValidating } = useSWRInfinite(getKey, fetcher);
+
+  useEffect(() => {
+    if (inView && !isValidating && !finished) {
+      setSize((prevSize) => prevSize + 1);
+    }
+  }, [inView, isValidating, finished, setSize]);
+
+  const posts = data?.flat();
+
+  return (
+    <div className="relative pt-4 w-full h-full space-y-2">
+      <h2 className="text-xl font-semibold">Your posts</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+        {posts?.map?.((post: any) => (
+          <div key={post.id} className="bg-gray-200 p-4 rounded-lg">
+            <h3 className="text-lg font-bold">{post.title}</h3>
+            <p>{post.content}</p>
+          </div>
+        ))}
+        {(isValidating && size > 1) && (
+           <div ref={ref}> Loading... </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default InfinityScrollList;
+```
+
+## **Conclusion**
+
+Infinite scrolling can greatly enhance user engagement, especially in content-heavy applications. With this guide, you should be well-equipped to implement it in your projects. 

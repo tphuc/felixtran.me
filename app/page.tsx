@@ -11,7 +11,7 @@ export default function Page() {
       <h1 className="pt-2 text-2xl font-semibold tracking-tighter">
         Felix Tr
       </h1>
-      <h2 className=''> A hands-on problem solver. Creating experiences that feel effortless and fun while solving real-world problems. </h2>
+      <h2 className=''> A hands-on problem solver. Crafting experiences that feel enjoyable while solving real-world problems. </h2>
       <h2 className=''>Recently, I launched <a target="_blank" rel="noopener noreferrer" className='underline cursor-pointer font-medium' href={'https://tubememo.com'}>Tube Memo</a>, a tool that simplifies note-taking from YouTube videos with AI-powered summaries and timestamped notes.</h2>
       </div>
 
